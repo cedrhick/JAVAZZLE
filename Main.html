@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Javazzle – Home</title>
+<style>
+  :root{
+    --bg:#d6dbc0; --tile:#faf7ee; --tile-shadow:#cbbba0;
+    --dark:#4a2504; --accent:#a85a05; --btn:#f4f0e8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg);
+    font-family:Georgia,"Times New Roman",serif;
+    color:var(--dark);
+    overflow:hidden;
+    position:relative;
+  }
+  /* background circles */
+  body::before,body::after{content:"";position:fixed;border-radius:50%;z-index:0}
+  body::before{width:70vmax;height:70vmax;left:-25vmax;top:-45vmax;background:#cdd2b6}
+  body::after{width:80vmax;height:80vmax;left:50%;bottom:-55vmax;transform:translateX(-50%);background:#bfc6ad}
+
+  /* falling letters */
+  #rain{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+  .fall{
+    position:absolute;top:-80px;
+    display:grid;place-items:center;
+    background:rgba(250,247,238,.45);
+    color:rgba(74,37,4,.35);
+    border-radius:12px;
+    font-weight:700;
+    animation:fall linear infinite;
+    box-shadow:0 4px 10px rgba(0,0,0,.05);
+  }
+  @keyframes fall{
+    from{transform:translateY(0) rotate(var(--r0))}
+    to{transform:translateY(calc(100vh + 160px)) rotate(var(--r1))}
+  }
+
+  /* top nav */
+  .topnav{position:relative;z-index:3;text-align:center;padding:14px 10px;font-size:15px}
+  .topnav a{color:#000;text-decoration:none;margin:0 3px}
+  .topnav a:hover{color:var(--accent);text-decoration:underline}
+
+  main{
+    position:relative;z-index:3;
+    min-height:calc(100vh - 56px);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:24px;padding:20px 16px 60px;
+  }
+
+  .logo{display:flex;gap:10px;flex-wrap:nowrap}
+  .logo span{
+    width:clamp(40px,8vw,90px);height:clamp(48px,9.5vw,100px);
+    display:grid;place-items:center;
+    background:var(--tile);color:var(--dark);
+    font-size:clamp(28px,5.5vw,62px);font-weight:700;
+    border-radius:14px;
+    box-shadow:0 8px 0 var(--tile-shadow);
+  }
+  .logo .dk{background:var(--dark);color:#fff}
+  .logo .ac{background:var(--accent);color:#fff}
+
+  h1{font-size:clamp(28px,5vw,54px);font-style:italic;font-weight:700;text-align:center}
+
+  .menu{display:flex;flex-direction:column;gap:18px;width:min(320px,86vw);margin-top:8px}
+  .btn{
+    display:block;text-align:center;text-decoration:none;
+    font:700 22px Arial,Helvetica,sans-serif;
+    padding:19px 0;border-radius:40px;
+    background:var(--btn);color:var(--dark);
+    box-shadow:0 6px 0 var(--tile-shadow);
+    transition:transform .12s,box-shadow .12s,filter .12s;
+  }
+  .btn.primary{background:var(--accent);color:#fff;box-shadow:0 6px 0 #7d4204}
+  .btn:hover{transform:translateY(-3px);filter:brightness(1.04)}
+  .btn:active{transform:translateY(4px);box-shadow:0 2px 0 var(--tile-shadow)}
+  .btn.primary:active{box-shadow:0 2px 0 #7d4204}
+  .btn:focus-visible{outline:3px solid var(--dark);outline-offset:3px}
+
+  footer{position:fixed;bottom:14px;left:0;right:0;text-align:center;z-index:3;font-size:18px}
+
+  @media (prefers-reduced-motion:reduce){.fall{animation-duration:60s!important}}
+</style>
+</head>
+
+<div id="rain" aria-hidden="true"></div>
+
+<main>
+  <div class="logo" aria-label="Javazzle">
+    <span class="dk">J</span><span>A</span><span>V</span><span>A</span>
+    <span class="ac">Z</span><span>Z</span><span>L</span><span class="dk">E</span>
+  </div>
+
+  <h1>Let's Start Solving!</h1>
+
+  <div class="menu">
+    <a class="btn primary" href="play.html">Play</a>
+    <a class="btn" href="Mechanics.html">Mechanics</a>
+    <a class="btn" href="Features.html">Features</a>
+    <a class="btn" href="Gameplay.html">gameplay</a>
+    <a class="btn" href="Progress.html">Progress</a>
+  </div>
+</main>
+
+<footer>Word-Puzzle Adventure by Sixora</footer>
+
+<script>
+  // Bumabagsak na letters (taas -> baba)
+  const rain = document.getElementById('rain');
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const COUNT = 18;
+
+  for (let i = 0; i < COUNT; i++) {
+    const t = document.createElement('div');
+    const size = 40 + Math.random() * 30;           // 40–70px
+    t.className = 'fall';
+    t.textContent = letters[Math.floor(Math.random() * letters.length)];
+    t.style.width = t.style.height = size + 'px';
+    t.style.fontSize = size * 0.55 + 'px';
+    t.style.left = Math.random() * 96 + '%';
+    t.style.animationDuration = 9 + Math.random() * 10 + 's';   // 9–19s
+    t.style.animationDelay = -Math.random() * 18 + 's';         // para may agad na nagbabagsakan
+    const r0 = Math.random() * 60 - 30;
+    t.style.setProperty('--r0', r0 + 'deg');
+    t.style.setProperty('--r1', r0 + (Math.random() * 120 - 60) + 'deg');
+    rain.appendChild(t);
+  }
+</script>
+</body>
+</html>
