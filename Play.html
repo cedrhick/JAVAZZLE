@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Javazzle – Choose a Game</title>
+<style>
+  :root{
+    --dark:#3d1f06; --brown:#8a4510; --accent:#a85a05; --light:#c0804a;
+    --sage:#6f7a62; --card:#f6f1dc; --panel:#c5cbaf; --edge:#e0c89a; --shadow:#c9b98f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{min-height:100%}
+  body{
+    font-family:"Century Gothic","Trebuchet MS",Arial,sans-serif;
+    color:var(--dark);
+    background:linear-gradient(180deg,#ece8c4 0%,#c9cfb0 45%,#9fb09a 100%);
+    background-attachment:fixed;
+    overflow-x:hidden;position:relative;
+  }
+  body::before,body::after{content:"";position:fixed;border-radius:50%;z-index:0}
+  body::before{width:75vmax;height:75vmax;left:-35vmax;top:-45vmax;background:rgba(255,255,240,.25)}
+  body::after{width:85vmax;height:85vmax;left:50%;bottom:-62vmax;transform:translateX(-50%);background:rgba(120,145,115,.35)}
+
+  main{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;padding:40px 16px 150px;gap:18px}
+  h1{
+    font:900 clamp(32px,5vw,48px) Georgia,serif;letter-spacing:1px;text-transform:uppercase;
+    text-shadow:2px 2px 0 rgba(0,0,0,.12);
+  }
+  .score{
+    background:var(--dark);color:#e0b870;font-weight:700;letter-spacing:1px;
+    padding:10px 52px;border-radius:30px;font-size:16px;
+  }
+
+  .cards{display:flex;gap:40px;flex-wrap:wrap;justify-content:center;margin-top:24px}
+  .card{
+    width:240px;padding:20px 22px 24px;text-align:center;
+    background:var(--card);border:2px solid var(--edge);border-radius:28px;
+    box-shadow:0 0 0 10px rgba(180,190,160,.7),0 14px 0 rgba(150,160,130,.6);
+    display:flex;flex-direction:column;align-items:center;
+    transition:transform .2s;
+  }
+  .card:hover{transform:translateY(-6px)}
+  .art{width:100%;height:96px;background:var(--panel);border-radius:18px;display:grid;place-items:center;margin-bottom:22px}
+  .card h2{font:700 25px Georgia,serif;margin-bottom:10px}
+  .card p{font-size:14px;line-height:1.35;margin-bottom:20px;min-height:38px}
+
+  .play{
+    display:inline-block;text-decoration:none;border:none;cursor:pointer;font-family:inherit;color:#fff;background:var(--brown);
+    font-weight:700;letter-spacing:1px;font-size:15px;padding:11px 38px;border-radius:24px;
+    box-shadow:0 4px 0 #5e2e08;transition:transform .12s,box-shadow .12s;
+  }
+  .play:hover{filter:brightness(1.1)}
+  .play:active{transform:translateY(3px);box-shadow:0 1px 0 #5e2e08}
+
+  .menu-btn{
+    margin-top:36px;text-decoration:none;color:var(--dark);font-weight:700;font-size:20px;
+    background:var(--card);border:2px solid var(--edge);border-radius:40px;
+    padding:18px 70px;box-shadow:0 6px 0 var(--shadow);transition:transform .12s,box-shadow .12s;
+  }
+  .menu-btn:hover{transform:translateY(-3px)}
+  .menu-btn:active{transform:translateY(4px);box-shadow:0 2px 0 var(--shadow)}
+  a:focus-visible{outline:3px solid var(--dark);outline-offset:3px}
+
+  /* art: WORD */
+  .word{display:flex;gap:4px}
+  .word b{width:28px;height:28px;display:grid;place-items:center;border-radius:6px;color:#fff;font:700 15px Georgia,serif}
+  /* art: crossword */
+  .grid{display:grid;grid-template-columns:repeat(4,22px);grid-template-rows:repeat(3,22px);gap:3px}
+  .grid i{background:#fbf6e8;border:2px solid var(--brown);border-radius:6px}
+  /* art: chain */
+  .chain{display:flex;align-items:center}
+  .chain u{width:12px;height:5px;background:var(--brown)}
+  .chain s{width:34px;height:34px;border-radius:50%;border:3px solid #fff}
+
+  /* tiles sa baba */
+  .floor{position:fixed;left:0;right:0;bottom:0;height:90px;z-index:1;pointer-events:none}
+  .floor div{
+    position:absolute;display:grid;place-items:center;background:#d2d9c3;color:#4a3a22;
+    font:700 22px Georgia,serif;border-radius:10px;border:1px solid rgba(255,255,255,.4);
+    box-shadow:0 5px 0 #aeb59c;
+  }
+  @media (max-width:560px){.floor{display:none}}
+  .topnav{position:relative;z-index:5;display:flex;justify-content:center;flex-wrap:wrap;gap:6px 22px;padding:14px 10px;background:rgba(61,31,6,.9)}
+  .topnav a{color:#f1e6c8;text-decoration:none;font-weight:700;font-size:15px;padding:4px 2px;border-bottom:2px solid transparent}
+  .topnav a:hover{color:#fff;border-color:#c0804a}
+  .topnav a.active{color:#fff;border-color:#e0b870}
+</style>
+</head>
+<body>
+<nav class="topnav"><a href="play.html" class="active">Play</a><a href="mechanics.html" class="active">Mechanics</a><a href="features.html">Features</a><a href="gameplay.html">Gameplay</a><a href="progress.html">Progress</a></nav>
+<main>
+  <h1>Choose a Game</h1>
+  <div class="score">SCORE <span id="score">0</span></div>
+
+  <section class="cards">
+    <article class="card">
+      <div class="art"><div class="word">
+        <b style="background:#8a4510">W</b><b style="background:#c0804a">O</b>
+        <b style="background:#6f7a62">R</b><b style="background:#8a4510">D</b>
+      </div></div>
+      <h2>Get the Word</h2>
+      <p>Guess the hidden word before your tries run out.</p>
+      <a class="play" href="Getword.html">PLAY</a>
+    </article>
+
+    <article class="card">
+      <div class="art"><div class="grid">
+        <i style="grid-area:1/1"></i><i style="grid-area:1/2"></i><i style="grid-area:1/4"></i>
+        <i style="grid-area:2/1"></i><i style="grid-area:2/3"></i><i style="grid-area:2/4"></i>
+        <i style="grid-area:3/1"></i><i style="grid-area:3/2"></i><i style="grid-area:3/3"></i>
+      </div></div>
+      <h2>Crossword</h2>
+      <p>Solve the clues and fill the grid with falling letters.</p>
+      <a class="play" href="crossword.html">PLAY</a>
+    </article>
+
+    <article class="card">
+      <div class="art"><div class="chain">
+        <s style="background:#3d1f06"></s><u></u><s style="background:#8a4510"></s><u></u><s style="background:#a85a05"></s>
+      </div></div>
+      <h2>Wordchain</h2>
+      <p>Link words into new compound words.</p>
+      <a class="play" href="wordchain.html">PLAY</a>
+    </article>
+  </section>
+
+  <a class="menu-btn" href="main.html">Main Menu</a>
+</main>
+
+<div class="floor" aria-hidden="true" id="floor"></div>
+
+<script>
+  // Score (galing sa localStorage kung meron)
+  try { document.getElementById('score').textContent = localStorage.getItem('javazzle_score') || 0; } catch(e){}
+
+  // Mga letter tiles na nakapatong sa baba
+  const floor = document.getElementById('floor');
+  const tiles = [
+    ['Y',58,30,34,-2],['C',90,24,44,0],['E',150,28,36,0],['B',235,12,52,0],
+    ['O',358,28,34,0],['M',392,20,46,0],['N',622,26,36,0],['J',655,28,34,0],
+    ['O',690,28,36,0],['E',752,28,36,-25],['J',845,22,44,-30],['Z',895,38,66,0],
+    ['O',958,20,40,-35],['Q',995,20,36,15]
+  ];
+  tiles.forEach(([l,x,b,s,r])=>{
+    const d=document.createElement('div');
+    d.textContent=l;
+    d.style.cssText=`left:${x/11}%;bottom:${b-14}px;width:${s}px;height:${s}px;font-size:${s*.5}px;transform:rotate(${r}deg)`;
+    floor.appendChild(d);
+  });
+</script>
+</body>
+</html>
