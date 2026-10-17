@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="tl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Javazzle – Wordchain</title><style>
+  :root{--dark:#3d1f06;--brown:#8a4510;--light:#c0804a;--sage:#8d9a7e;--card:#f6f1dc;--edge:#e0c89a;--shadow:#c9b98f}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{min-height:100vh;font-family:"Century Gothic","Trebuchet MS",Arial,sans-serif;color:var(--dark);background:linear-gradient(180deg,#ece8c4,#c9cfb0 50%,#9fb09a) fixed}
+  .topnav{display:flex;justify-content:center;flex-wrap:wrap;gap:6px 22px;padding:14px 10px;background:rgba(61,31,6,.9)}
+  .topnav a{color:#f1e6c8;text-decoration:none;font-weight:700;font-size:15px;padding:4px 2px;border-bottom:2px solid transparent}
+  .topnav a:hover{color:#fff;border-color:var(--light)}.topnav a.active{color:#fff;border-color:#e0b870}
+  main{display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px 12px 40px}
+  h1{font:900 clamp(28px,5vw,40px) Georgia,serif;text-transform:uppercase}
+  .score{background:var(--dark);color:#e0b870;font-weight:700;padding:8px 40px;border-radius:30px}
+  #msg{min-height:26px;font-weight:700;text-align:center}
+  .btn{border:none;cursor:pointer;font:700 16px Arial,sans-serif;color:#fff;background:var(--brown);padding:12px 34px;border-radius:30px;box-shadow:0 5px 0 #5e2e08}
+  .btn:active{transform:translateY(3px);box-shadow:0 2px 0 #5e2e08}
+  .hide{display:none}
+
+  #chain{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px;max-width:640px;min-height:70px}
+  .n{min-width:64px;padding:12px 16px;border-radius:30px;background:var(--brown);color:#fff;font:700 18px Georgia,serif;text-transform:uppercase;text-align:center;border:3px solid #fff;box-shadow:0 3px 0 #5e2e08}
+  .n:first-child{background:var(--dark)}.n:last-child{background:#a85a05}
+  .l{width:14px;height:5px;background:var(--brown)}
+  #row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  input{font:700 18px Arial,sans-serif;padding:12px 18px;border-radius:30px;border:2px solid var(--edge);background:var(--card);color:var(--dark);width:200px;text-align:center;outline:none}
+  input:focus{border-color:var(--brown)}
+  .alt{background:var(--card);color:var(--dark);box-shadow:0 5px 0 var(--shadow)}
+</style></head>
+<body>
+<nav class="topnav"><a href="play.html" class="active">Play</a><a href="mechanics.html" class="active">Mechanics</a><a href="features.html">Features</a><a href="gameplay.html">Gameplay</a><a href="progress.html">Progress</a></nav>
+<main>
+<h1>Wordchain</h1>
+<div class="score">SCORE <span id="score">0</span></div>
+<div>Buhay: <span id="lives"></span></div>
+<div id="msg"></div>
+<div id="chain"></div>
+<div id="row"><input id="in" placeholder="Susunod na salita" autocomplete="off"><button class="btn" id="go">Add</button></div>
+<div id="row"><button class="btn alt" id="hint">Hint (-5)</button><button class="btn alt" id="new">Bagong Chain</button></div>
+</main>
+<script>
+function stat(k,fn){try{const s=JSON.parse(localStorage.getItem('javazzle_stats')||'{}');s[k]=fn(s[k]||0);localStorage.setItem('javazzle_stats',JSON.stringify(s))}catch(e){}}
+const $=id=>document.getElementById(id);let score=0;try{score=+localStorage.getItem('javazzle_score')||0}catch(e){}
+const addScore=n=>{score=Math.max(0,score+n);try{localStorage.setItem('javazzle_score',score)}catch(e){}$('score').textContent=score};$('score').textContent=score;
+
+const P="sun:flower,light,rise,set,shine,burn|flower:pot,bed|pot:hole|light:house,bulb|house:boat,fly,work,hold|boat:house,yard|set:back|back:bone,pack,yard,fire|bed:room,time|room:mate|time:table,line|table:cloth,top|top:soil|work:shop,book|book:shelf,mark|shop:keeper|fire:fly,work,place|place:mat|burn:out|out:side,door|door:bell,step|side:walk,line|walk:way|way:side|yard:stick|bell:boy|step:son|mat:ch|line:up|pack:age".split("|");
+const D={};P.forEach(s=>{const[a,b]=s.split(":");D[a]=b.split(",")});
+const starts=Object.keys(D).filter(k=>D[k].length>1&&["sun","light","house","work","fire","back","bed","time","table","out","side","book"].includes(k));
+let chain,used,lives,over;
+function start(){const s=starts[Math.floor(Math.random()*starts.length)];chain=[s];used=new Set([s]);lives=3;over=false;$('msg').textContent="Magdugtong ng salita para makabuo ng compound word (hal. sun + flower).";$('in').value="";$('in').disabled=false;draw()}
+function draw(){const c=$('chain');c.innerHTML="";chain.forEach((w,i)=>{if(i){const l=document.createElement('div');l.className='l';c.appendChild(l)}const n=document.createElement('div');n.className='n';n.textContent=w;c.appendChild(n)});$('lives').textContent="❤".repeat(lives)||"—"}
+const last=()=>chain[chain.length-1];
+function submit(){
+ if(over)return;const w=$('in').value.trim().toLowerCase();if(!w)return;$('in').value="";
+ const ok=(D[last()]||[]).includes(w)&&!used.has(w);
+ if(ok){chain.push(w);used.add(w);addScore(10);stat('chain',n=>Math.max(n,chain.length-1));const left=(D[w]||[]).filter(x=>!used.has(x));
+  if(!left.length){$('msg').textContent=`${last()} — wala nang maidudugtong. Tapos ang chain! 🎉 (${chain.length-1} links)`;over=true;$('in').disabled=true}
+  else $('msg').textContent=`Tama! ${chain[chain.length-2]}${w} +10`}
+ else{lives--;$('msg').textContent=used.has(w)?"Nagamit mo na iyan!":`Hindi nabubuo ang "${last()}${w}".`;
+  if(lives<=0){over=true;$('in').disabled=true;$('msg').textContent=`Naubos ang buhay mo. Haba ng chain: ${chain.length-1}`}}
+ draw()}
+$('go').onclick=submit;$('in').onkeydown=e=>{if(e.key==="Enter")submit()};
+$('hint').onclick=()=>{if(over)return;const o=(D[last()]||[]).filter(x=>!used.has(x));if(o.length){addScore(-5);$('msg').textContent=`Hint: nagsisimula sa "${o[0][0].toUpperCase()}" (${o[0].length} letra)`}};
+$('new').onclick=start;start();
+
+</script></body></html>
