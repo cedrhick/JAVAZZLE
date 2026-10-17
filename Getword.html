@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="tl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Javazzle – Get the Word</title>
+<style>
+  :root{--dark:#3d1f06;--brown:#8a4510;--light:#c0804a;--sage:#8d9a7e;--card:#f6f1dc;--edge:#e0c89a;--shadow:#c9b98f}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{min-height:100vh;font-family:"Century Gothic","Trebuchet MS",Arial,sans-serif;color:var(--dark);
+    background:linear-gradient(180deg,#ece8c4,#c9cfb0 50%,#9fb09a) fixed}
+  .topnav{display:flex;justify-content:center;flex-wrap:wrap;gap:6px 22px;padding:14px 10px;background:rgba(61,31,6,.9)}
+  .topnav a{color:#f1e6c8;text-decoration:none;font-weight:700;font-size:15px;padding:4px 2px;border-bottom:2px solid transparent}
+  .topnav a:hover{color:#fff;border-color:var(--light)} .topnav a.active{color:#fff;border-color:#e0b870}
+  main{display:flex;flex-direction:column;align-items:center;gap:12px;padding:26px 12px 40px}
+  h1{font:900 clamp(28px,5vw,40px) Georgia,serif;text-transform:uppercase}
+  .score{background:var(--dark);color:#e0b870;font-weight:700;padding:8px 40px;border-radius:30px}
+  #msg{min-height:26px;font-weight:700;text-align:center}
+  #board{display:grid;gap:6px;margin:4px 0}
+  .row{display:flex;gap:6px}
+  .t{width:clamp(46px,12vw,58px);height:clamp(46px,12vw,58px);display:grid;place-items:center;border-radius:10px;
+    background:var(--card);border:2px solid var(--edge);box-shadow:0 4px 0 var(--shadow);font:700 26px Georgia,serif;text-transform:uppercase}
+  .t.fill{border-color:var(--brown);animation:pop .1s}
+  .t.ok{background:var(--brown);color:#fff;border-color:var(--brown)}
+  .t.has{background:var(--light);color:#fff;border-color:var(--light)}
+  .t.no{background:var(--sage);color:#fff;border-color:var(--sage)}
+  .shake{animation:shake .3s}
+  @keyframes pop{50%{transform:scale(1.1)}} @keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  #kb{display:flex;flex-direction:column;gap:6px;align-items:center;margin-top:8px}
+  .kr{display:flex;gap:5px}
+  .k{border:none;cursor:pointer;font:700 15px Arial,sans-serif;color:var(--dark);background:var(--card);min-width:clamp(28px,7.5vw,42px);height:48px;
+    padding:0 6px;border-radius:8px;box-shadow:0 3px 0 var(--shadow)} .k:active{transform:translateY(2px)}
+  .k.wide{min-width:clamp(52px,14vw,70px)}
+  .k.ok{background:var(--brown);color:#fff} .k.has{background:var(--light);color:#fff} .k.no{background:var(--sage);color:#fff}
+  .btn{display:none;margin-top:6px;border:none;cursor:pointer;font:700 17px Arial,sans-serif;color:#fff;background:var(--brown);
+    padding:13px 40px;border-radius:30px;box-shadow:0 5px 0 #5e2e08}
+</style></head>
+<body>
+<nav class="topnav"><a href="play.html" class="active">Play</a><a href="mechanics.html" class="active">Mechanics</a><a href="features.html">Features</a><a href="gameplay.html">Gameplay</a><a href="progress.html">Progress</a></nav>
+<main>
+  <h1>Get the Word</h1>
+  <div class="score">SCORE <span id="score">0</span></div>
+  <div id="msg">Hulaan ang 5-letter na salita. 6 na tries!</div>
+  <div id="board"></div>
+  <div id="kb"></div>
+  <button class="btn" id="again">Next Word</button>
+</main>
+<script>
+function stat(k,fn){try{const s=JSON.parse(localStorage.getItem('javazzle_stats')||'{}');s[k]=fn(s[k]||0);localStorage.setItem('javazzle_stats',JSON.stringify(s))}catch(e){}}
+const WORDS="apple brave chair dream eagle flame grape house juice knife lemon mango night ocean piano queen river stone tiger plant smile train water light music green bread cloud earth field giant heart jelly lunch money novel olive pearl quiet robot sugar table voice whale young zebra beach candy dance fairy ghost happy lucky magic nurse party radio shine tower video world angel brick crown daisy flute glove horse".split(" ");
+const ROWS=6,COLS=5;
+let secret,row,col,grid,over,score=0;
+try{score=+localStorage.getItem('javazzle_score')||0}catch(e){}
+const $=id=>document.getElementById(id), board=$('board'), msg=$('msg');
+const show=()=>$('score').textContent=score;
+
+function build(){
+  board.innerHTML="";grid=[];
+  for(let r=0;r<ROWS;r++){const d=document.createElement('div');d.className='row';const rw=[];
+    for(let c=0;c<COLS;c++){const t=document.createElement('div');t.className='t';d.appendChild(t);rw.push(t)}
+    board.appendChild(d);grid.push(rw)}
+  document.querySelectorAll('.k').forEach(k=>k.className=k.className.replace(/ (ok|has|no)/g,''));
+}
+function keys(){
+  [..."qwertyuiop"],[..."asdfghjkl"],["ENTER",..."zxcvbnm","⌫"]
+  ;
+  [["q","w","e","r","t","y","u","i","o","p"],["a","s","d","f","g","h","j","k","l"],["ENTER","z","x","c","v","b","n","m","⌫"]].forEach(r=>{
+    const d=document.createElement('div');d.className='kr';
+    r.forEach(k=>{const b=document.createElement('button');b.className='k'+(k.length>1||k==="⌫"?' wide':'');b.textContent=k.toUpperCase()==="ENTER"?"ENTER":k.toUpperCase();
+      b.dataset.k=k;b.onclick=()=>press(k);d.appendChild(b)});$('kb').appendChild(d)});
+}
+function start(){secret=WORDS[Math.floor(Math.random()*WORDS.length)];row=col=0;over=false;build();msg.textContent="Hulaan ang 5-letter na salita. 6 na tries!";$('again').style.display="none"}
+function press(k){
+  if(over)return;
+  if(k==="Enter"||k==="ENTER")return submit();
+  if(k==="Backspace"||k==="⌫"){if(col>0){const t=grid[row][--col];t.textContent="";t.classList.remove('fill')}return}
+  if(/^[a-z]$/i.test(k)&&col<COLS){const t=grid[row][col++];t.textContent=k;t.classList.add('fill')}
+}
+function submit(){
+  if(col<COLS){msg.textContent="Kulang pa ang letra!";const r=board.children[row];r.classList.add('shake');setTimeout(()=>r.classList.remove('shake'),300);return}
+  const g=grid[row].map(t=>t.textContent.toLowerCase()), res=Array(COLS).fill('no'), left={};
+  for(let i=0;i<COLS;i++){if(g[i]===secret[i])res[i]='ok';else left[secret[i]]=(left[secret[i]]||0)+1}
+  for(let i=0;i<COLS;i++){if(res[i]!=='ok'&&left[g[i]]>0){res[i]='has';left[g[i]]--}}
+  const rank={no:0,has:1,ok:2};
+  g.forEach((ch,i)=>{grid[row][i].classList.add(res[i]);
+    const kb=document.querySelector(`.k[data-k="${ch}"]`);
+    if(kb){const cur=['ok','has','no'].find(c=>kb.classList.contains(c));
+      if(!cur||rank[res[i]]>rank[cur]){kb.classList.remove('ok','has','no');kb.classList.add(res[i])}}});
+  if(g.join('')===secret){const pts=(ROWS-row)*10;score+=pts;save();show();stat('getword',n=>n+1);msg.textContent=`Tama! +${pts} points 🎉`;return end()}
+  row++;col=0;
+  if(row===ROWS){msg.textContent=`Talo! Ang salita ay "${secret.toUpperCase()}"`;end()}
+  else msg.textContent=`${ROWS-row} tries na lang`;
+}
+function end(){over=true;$('again').style.display="block"}
+function save(){try{localStorage.setItem('javazzle_score',score)}catch(e){}}
+document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey)return;press(e.key)});
+$('again').onclick=start;
+keys();start();show();
+</script>
+</body></html>
