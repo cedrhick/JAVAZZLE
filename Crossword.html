@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="tl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Javazzle – Crossword</title><style>
+  :root{--dark:#3d1f06;--brown:#8a4510;--light:#c0804a;--sage:#8d9a7e;--card:#f6f1dc;--edge:#e0c89a;--shadow:#c9b98f}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{min-height:100vh;font-family:"Century Gothic","Trebuchet MS",Arial,sans-serif;color:var(--dark);background:linear-gradient(180deg,#ece8c4,#c9cfb0 50%,#9fb09a) fixed}
+  .topnav{display:flex;justify-content:center;flex-wrap:wrap;gap:6px 22px;padding:14px 10px;background:rgba(61,31,6,.9)}
+  .topnav a{color:#f1e6c8;text-decoration:none;font-weight:700;font-size:15px;padding:4px 2px;border-bottom:2px solid transparent}
+  .topnav a:hover{color:#fff;border-color:var(--light)}.topnav a.active{color:#fff;border-color:#e0b870}
+  main{display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px 12px 40px}
+  h1{font:900 clamp(28px,5vw,40px) Georgia,serif;text-transform:uppercase}
+  .score{background:var(--dark);color:#e0b870;font-weight:700;padding:8px 40px;border-radius:30px}
+  #msg{min-height:26px;font-weight:700;text-align:center}
+  .btn{border:none;cursor:pointer;font:700 16px Arial,sans-serif;color:#fff;background:var(--brown);padding:12px 34px;border-radius:30px;box-shadow:0 5px 0 #5e2e08}
+  .btn:active{transform:translateY(3px);box-shadow:0 2px 0 #5e2e08}
+  .hide{display:none}
+
+  #wrap{display:flex;gap:22px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+  #grid{display:grid;grid-template-columns:repeat(5,50px);grid-template-rows:repeat(5,50px);gap:4px}
+  .c{border-radius:8px;display:grid;place-items:center;font:700 24px Georgia,serif}
+  .c.on{background:var(--card);border:2px solid var(--edge);box-shadow:0 3px 0 var(--shadow);cursor:pointer}
+  .c.sel{border-color:var(--brown);background:#fff3d6}.c.done{background:var(--brown);color:#fff;border-color:var(--brown)}
+  #clues{max-width:260px;display:flex;flex-direction:column;gap:8px}
+  .cl{text-align:left;border:2px solid var(--edge);background:var(--card);border-radius:12px;padding:8px 12px;cursor:pointer;font:14px "Trebuchet MS",sans-serif;color:var(--dark)}
+  .cl.sel{border-color:var(--brown);font-weight:700}.cl.done{opacity:.5;text-decoration:line-through}
+  #sky{position:relative;width:min(92vw,500px);height:230px;overflow:hidden;border-radius:18px;background:rgba(255,255,240,.35);border:2px dashed var(--edge)}
+  .f{position:absolute;top:-50px;width:44px;height:44px;border-radius:10px;border:2px solid var(--edge);background:var(--card);box-shadow:0 3px 0 var(--shadow);
+     font:700 22px Georgia,serif;color:var(--dark);cursor:pointer;animation:fall 6s linear forwards}
+  .f.bad{background:#d97b6a}
+  @keyframes fall{to{transform:translateY(290px)}}
+</style></head>
+<body>
+<nav class="topnav"><a href="play.html" class="active">Play</a><a href="mechanics.html" class="active">Mechanics</a><a href="features.html">Features</a><a href="gameplay.html">Gameplay</a><a href="progress.html">Progress</a></nav>
+<main>
+<h1>Crossword</h1>
+<div class="score">SCORE <span id="score">0</span></div>
+<div id="msg"></div>
+<div id="wrap"><div id="grid"></div><div id="clues"></div></div>
+<div>Buhay: <span id="lives"></span></div>
+<div id="sky"></div>
+<button class="btn hide" id="again">Play Again</button>
+</main>
+<script>
+function stat(k,fn){try{const s=JSON.parse(localStorage.getItem('javazzle_stats')||'{}');s[k]=fn(s[k]||0);localStorage.setItem('javazzle_stats',JSON.stringify(s))}catch(e){}}
+const $=id=>document.getElementById(id);let score=0;try{score=+localStorage.getItem('javazzle_score')||0}catch(e){}
+const addScore=n=>{score=Math.max(0,score+n);try{localStorage.setItem('javazzle_score',score)}catch(e){}$('score').textContent=score};$('score').textContent=score;
+
+const W=[
+ {c:"1 Across: Halamang tumutubo sa lupa (5)",a:"PLANT",r:0,k:0,d:[0,1]},
+ {c:"2 Down: Instrumentong may itim at puting keys (5)",a:"PIANO",r:0,k:0,d:[1,0]},
+ {c:"3 Down: Malaking pusang may guhit (5)",a:"TIGER",r:0,k:4,d:[1,0]},
+ {c:"4 Across: Maayos na ayos; o ang gagawin mo sa restaurant (5)",a:"ORDER",r:4,k:0,d:[0,1]}];
+W.forEach(w=>w.cells=[...w.a].map((_,i)=>[w.r+w.d[0]*i,w.k+w.d[1]*i]));
+let fill,sel,lives,over,timer;
+function start(){fill={};sel=0;lives=3;over=false;$('again').classList.add('hide');$('sky').innerHTML="";$('msg').textContent="Pumili ng clue, tapos i-click ang tamang letrang bumabagsak!";
+ draw();clearInterval(timer);timer=setInterval(spawn,700)}
+const key=([r,c])=>r+","+c, done=w=>w.cells.every(x=>fill[key(x)]);
+function nextCell(w){return w.cells.findIndex(x=>!fill[key(x)])}
+function draw(){
+ const g=$('grid');g.innerHTML="";const on={};W[sel].cells.forEach(x=>on[key(x)]=1);
+ for(let r=0;r<5;r++)for(let c=0;c<5;c++){const d=document.createElement('div');d.className='c';
+  const w=W.findIndex(w=>w.cells.some(x=>x[0]==r&&x[1]==c));
+  if(w>=0){d.className+=' on'+(on[r+","+c]?' sel':'')+(fill[r+","+c]?' done':'');d.textContent=fill[r+","+c]||"";d.onclick=()=>{sel=w;draw()}}
+  g.appendChild(d)}
+ $('clues').innerHTML="";W.forEach((w,i)=>{const b=document.createElement('button');b.className='cl'+(i==sel?' sel':'')+(done(w)?' done':'');b.textContent=w.c;b.onclick=()=>{sel=i;draw()};$('clues').appendChild(b)});
+ $('lives').textContent="❤".repeat(lives)||"—";
+}
+function spawn(){
+ if(over)return;const w=W[sel],i=nextCell(w);
+ const ch=(i>=0&&Math.random()<.5)?w.a[i]:"ABCDEFGHIJKLMNOPQRSTUVWXYZ"[Math.floor(Math.random()*26)];
+ const b=document.createElement('button');b.className='f';b.textContent=ch;
+ b.style.left=Math.random()*(Math.min(innerWidth*.92,500)-48)+"px";
+ b.onclick=()=>pick(b,ch);b.onanimationend=()=>b.remove();$('sky').appendChild(b)}
+function pick(b,ch){
+ if(over)return;const w=W[sel],i=nextCell(w);
+ if(i<0){sel=W.findIndex(x=>!done(x));draw();return}
+ if(ch===w.a[i]){fill[key(w.cells[i])]=ch;b.remove();
+  if(W.every(done)){over=true;clearInterval(timer);const p=50+lives*10;addScore(p);stat('crossword',n=>n+1);$('msg').textContent=`Tapos na ang crossword! +${p} points 🎉`;draw();$('again').classList.remove('hide');return}
+  if(done(w)){sel=W.findIndex(x=>!done(x))}
+  draw()}
+ else{b.classList.add('bad');setTimeout(()=>b.remove(),150);lives--;draw();
+  if(lives<=0){over=true;clearInterval(timer);W.forEach(w=>w.cells.forEach((x,i)=>fill[key(x)]=w.a[i]));draw();$('msg').textContent="Naubos ang buhay mo! Heto ang mga sagot.";$('again').classList.remove('hide')}}
+}
+$('again').onclick=start;start();
+
+</script></body></html>
